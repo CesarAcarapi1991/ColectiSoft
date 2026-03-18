@@ -3,26 +3,45 @@ require("dotenv").config();
 const express = require("express");
 const services = require("./config/services");
 const createProxy = require("./routes/gateway.routes");
+
 const traceMiddleware = require("./middleware/trace.middleware");
+const authMiddleware = require("./middleware/auth.middleware");
+const roleMiddleware = require("./middleware/role.middleware");
+const rateLimiter = require("./middleware/rateLimit.middleware");
 
 const app = express();
 
-// 🔥 TRACE GLOBAL
+// GLOBAL
 app.use(traceMiddleware);
+app.use(rateLimiter);
 
-// 🔥 Routing dinámico
+// CONFIGURACIÓN DINÁMICA PRO
 Object.keys(services).forEach((key) => {
-  const { route, target } = services[key];
-  console.log(`🔌 ${route} → ${target}`);
-  app.use(route, createProxy(target));
+  const service = services[key];
+
+  const middlewares = [];
+
+  // Si requiere auth
+  if (service.auth) {
+    middlewares.push(authMiddleware);
+  }
+
+  // Si tiene roles
+  if (service.roles) {
+    middlewares.push(roleMiddleware(service.roles));
+  }
+
+  // Proxy siempre al final
+  middlewares.push(createProxy(service.target));
+
+  console.log(`🔌 ${service.route} → ${service.target}`);
+
+  app.use(service.route, ...middlewares);
 });
 
-// 🔥 Ruta health check
+// HEALTH
 app.get("/health", (req, res) => {
-  res.json({
-    status: "OK",
-    service: "API Gateway"
-  });
+  res.json({ status: "OK", gateway: true });
 });
 
 const PORT = process.env.PORT || 3000;
