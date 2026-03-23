@@ -18,7 +18,7 @@ app.use(rateLimiter);
 // CONFIGURACIÓN DINÁMICA PRO
 Object.keys(services).forEach((key) => {
   const service = services[key];
-
+console.log("SERVICE:", key, service); 
   const middlewares = [];
 
   // Si requiere auth

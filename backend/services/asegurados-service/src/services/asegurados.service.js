@@ -76,3 +76,27 @@ exports.actualizarAsegurado = async (id, data, usuarioLogueado) => {
   );
   return result.rows;
 };
+
+exports.buscarPorDocumento = async (tipo, nro, complemento) => {
+
+  let query = `
+    SELECT *
+    FROM asegurados
+    WHERE tipo_documento = $1
+    AND nro_documento = $2
+  `;
+
+  const params = [tipo, nro];
+
+  // 🔥 SOLO filtra complemento si viene
+  if (complemento && complemento.trim() !== "") {
+    query += " AND complemento = $3";
+    params.push(complemento.trim());
+  }
+
+  query += " order by id desc LIMIT 1";
+
+  const result = await db.query(query, params);
+
+  return result.rows[0];
+};

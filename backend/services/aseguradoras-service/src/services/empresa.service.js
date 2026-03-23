@@ -18,7 +18,7 @@ exports.crearEmpresa = async (data, usuarioLogueado) => {
 
 exports.listarEmpresas = async () => {
   const result = await db.query(
-    "SELECT * FROM empresa_aseguradora"
+    "SELECT * FROM empresa_aseguradora order by id desc"
   );
   return result.rows;
 };

@@ -57,3 +57,38 @@ exports.actualizarAsegurado = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+exports.buscarAsegurado = async (req, res) => {
+  try {
+
+    let { tipo_documento, nro_documento, complemento } = req.query;
+
+    if (!tipo_documento || !nro_documento) {
+      return res.status(400).json({
+        error: "tipo_documento y nro_documento son requeridos"
+      });
+    }
+
+    // 🔥 normalización
+    tipo_documento = tipo_documento.trim().toUpperCase();
+    nro_documento = nro_documento.trim();
+    complemento = complemento?.trim();
+
+    const asegurado = await service.buscarPorDocumento(
+      tipo_documento,
+      nro_documento,
+      complemento
+    );
+
+    if (!asegurado) {
+      return res.status(404).json({
+        error: "Asegurado no encontrado"
+      });
+    }
+
+    res.json(asegurado);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
